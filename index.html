@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Notes App - Modern, feature-rich note taking and markdown editor">
+  <title>Notes App</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+  <!-- Core Stylesheets -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/notes-list.css">
+  <link rel="stylesheet" href="css/editor.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/themes.css">
+</head>
+<body>
+  <div id="app" class="app-container">
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <button id="toggle-sidebar-btn" class="icon-btn" aria-label="Toggle sidebar" title="Toggle sidebar (Ctrl+\)">
+          <svg class="icon"><use href="assets/icons.svg#icon-menu"></use></svg>
+        </button>
+        <div class="brand-logo">
+          <svg class="icon brand-icon"><use href="assets/icons.svg#icon-book-open"></use></svg>
+          <span class="brand-title">Notes<strong>App</strong></span>
+        </div>
+      </div>
+
+      <div class="header-search">
+        <div class="search-input-wrapper">
+          <svg class="icon search-icon"><use href="assets/icons.svg#icon-search"></use></svg>
+          <input type="text" id="global-search" placeholder="Search notes by title, content, or #tag... (Ctrl+F)" autocomplete="off">
+          <button id="clear-search-btn" class="icon-btn-sm hidden" aria-label="Clear search">
+            <svg class="icon"><use href="assets/icons.svg#icon-x"></use></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="create-note-btn" class="btn btn-primary" title="Create note (Ctrl+N)">
+          <svg class="icon"><use href="assets/icons.svg#icon-plus"></use></svg>
+          <span class="btn-text">New Note</span>
+        </button>
+
+        <div class="view-toggle-group">
+          <button id="view-grid-btn" class="icon-btn active" title="Grid view">
+            <svg class="icon"><use href="assets/icons.svg#icon-grid"></use></svg>
+          </button>
+          <button id="view-list-btn" class="icon-btn" title="List view">
+            <svg class="icon"><use href="assets/icons.svg#icon-list"></use></svg>
+          </button>
+        </div>
+
+        <div class="theme-selector-dropdown">
+          <button id="theme-menu-btn" class="icon-btn" title="Change Theme" aria-haspopup="true">
+            <svg class="icon"><use href="assets/icons.svg#icon-palette"></use></svg>
+          </button>
+          <div id="theme-dropdown-menu" class="dropdown-menu hidden">
+            <button class="dropdown-item" data-theme-val="light"><span class="theme-dot light-dot"></span> Light</button>
+            <button class="dropdown-item" data-theme-val="dark"><span class="theme-dot dark-dot"></span> Dark</button>
+            <button class="dropdown-item" data-theme-val="solarized"><span class="theme-dot solarized-dot"></span> Solarized</button>
+            <button class="dropdown-item" data-theme-val="nord"><span class="theme-dot nord-dot"></span> Nord</button>
+            <button class="dropdown-item" data-theme-val="sepia"><span class="theme-dot sepia-dot"></span> Sepia</button>
+          </div>
+        </div>
+
+        <button id="shortcuts-btn" class="icon-btn" title="Keyboard shortcuts (Ctrl+/)">
+          <svg class="icon"><use href="assets/icons.svg#icon-command"></use></svg>
+        </button>
+
+        <button id="backup-btn" class="icon-btn" title="Import / Export Data">
+          <svg class="icon"><use href="assets/icons.svg#icon-database"></use></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Area -->
+    <div class="app-workspace">
+      <!-- Navigation Sidebar -->
+      <aside id="app-sidebar" class="app-sidebar">
+        <nav class="sidebar-nav">
+          <div class="sidebar-section">
+            <div class="section-header">
+              <span class="section-title">Navigation</span>
+            </div>
+            <ul class="nav-list">
+              <li class="nav-item active" data-filter="all">
+                <a href="#all" class="nav-link">
+                  <svg class="icon"><use href="assets/icons.svg#icon-file-text"></use></svg>
+                  <span class="nav-label">All Notes</span>
+                  <span id="count-all" class="badge">0</span>
+                </a>
+              </li>
+              <li class="nav-item" data-filter="pinned">
+                <a href="#pinned" class="nav-link">
+                  <svg class="icon"><use href="assets/icons.svg#icon-pin"></use></svg>
+                  <span class="nav-label">Pinned</span>
+                  <span id="count-pinned" class="badge">0</span>
+                </a>
+              </li>
+              <li class="nav-item" data-filter="favorites">
+                <a href="#favorites" class="nav-link">
+                  <svg class="icon"><use href="assets/icons.svg#icon-star"></use></svg>
+                  <span class="nav-label">Favorites</span>
+                  <span id="count-favorites" class="badge">0</span>
+                </a>
+              </li>
+              <li class="nav-item" data-filter="archived">
+                <a href="#archived" class="nav-link">
+                  <svg class="icon"><use href="assets/icons.svg#icon-archive"></use></svg>
+                  <span class="nav-label">Archive</span>
+                  <span id="count-archived" class="badge">0</span>
+                </a>
+              </li>
+              <li class="nav-item" data-filter="trash">
+                <a href="#trash" class="nav-link">
+                  <svg class="icon"><use href="assets/icons.svg#icon-trash"></use></svg>
+                  <span class="nav-label">Trash</span>
+                  <span id="count-trash" class="badge">0</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Categories Section -->
+          <div class="sidebar-section">
+            <div class="section-header">
+              <span class="section-title">Categories</span>
+              <button id="add-category-btn" class="icon-btn-xs" title="Add Category">
+                <svg class="icon"><use href="assets/icons.svg#icon-plus"></use></svg>
+              </button>
+            </div>
+            <ul id="categories-list" class="nav-list categories-list">
+              <!-- Dynamically rendered -->
+            </ul>
+          </div>
+
+          <!-- Tags Cloud Section -->
+          <div class="sidebar-section">
+            <div class="section-header">
+              <span class="section-title">Tags</span>
+            </div>
+            <div id="tags-cloud" class="tags-cloud">
+              <!-- Dynamically rendered -->
+            </div>
+          </div>
+        </nav>
+
+        <!-- Sidebar Footer -->
+        <div class="sidebar-footer">
+          <div class="storage-info">
+            <div class="storage-label">
+              <span>Local Storage</span>
+              <span id="storage-used-text">0 KB</span>
+            </div>
+            <div class="progress-bar">
+              <div id="storage-progress" class="progress-fill" style="width: 2%;"></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Middle Pane: Notes List -->
+      <section id="notes-pane" class="notes-pane">
+        <div class="notes-pane-header">
+          <div class="notes-pane-title-group">
+            <h2 id="current-view-title" class="notes-pane-title">All Notes</h2>
+            <span id="notes-view-count" class="notes-view-count">0 notes</span>
+          </div>
+
+          <div class="notes-pane-controls">
+            <label for="notes-sort-select" class="sr-only">Sort notes by</label>
+            <select id="notes-sort-select" class="select-sm">
+              <option value="updated-desc">Updated (Newest)</option>
+              <option value="updated-asc">Updated (Oldest)</option>
+              <option value="created-desc">Created (Newest)</option>
+              <option value="created-asc">Created (Oldest)</option>
+              <option value="title-asc">Title (A - Z)</option>
+              <option value="title-desc">Title (Z - A)</option>
+            </select>
+            <button id="empty-trash-btn" class="btn btn-danger-outline btn-sm hidden">Empty Trash</button>
+          </div>
+        </div>
+
+        <!-- Filter Chips Bar -->
+        <div id="active-filters-bar" class="active-filters-bar hidden">
+          <span class="filter-label">Filter:</span>
+          <div id="active-filters-chips" class="filter-chips"></div>
+          <button id="clear-all-filters-btn" class="text-btn-xs">Clear all</button>
+        </div>
+
+        <!-- Notes Cards List Container -->
+        <div id="notes-container" class="notes-container grid-view">
+          <!-- Dynamically populated or empty state -->
+        </div>
+      </section>
+
+      <!-- Right Pane: Note Editor -->
+      <main id="editor-pane" class="editor-pane">
+        <!-- Empty State (When no note selected) -->
+        <div id="editor-empty-state" class="editor-empty-state">
+          <div class="empty-state-content">
+            <svg class="icon empty-state-icon"><use href="assets/icons.svg#icon-edit-3"></use></svg>
+            <h3>No Note Selected</h3>
+            <p>Select a note from the list or create a fresh one to begin typing.</p>
+            <button id="empty-state-create-btn" class="btn btn-primary">
+              <svg class="icon"><use href="assets/icons.svg#icon-plus"></use></svg> Create New Note
+            </button>
+          </div>
+        </div>
+
+        <!-- Active Note Form -->
+        <div id="editor-active-container" class="editor-active-container hidden">
+          <!-- Editor Top Actions Bar -->
+          <div class="editor-action-bar">
+            <div class="editor-status-info">
+              <span id="autosave-status" class="status-indicator">
+                <span class="status-dot"></span> Saved
+              </span>
+              <span id="last-saved-time" class="last-saved-text">Just now</span>
+            </div>
+
+            <div class="editor-actions">
+              <button id="pin-note-btn" class="icon-btn" title="Pin to top">
+                <svg class="icon"><use href="assets/icons.svg#icon-pin"></use></svg>
+              </button>
+              <button id="favorite-note-btn" class="icon-btn" title="Favorite note">
+                <svg class="icon"><use href="assets/icons.svg#icon-star"></use></svg>
+              </button>
+              <button id="color-picker-btn" class="icon-btn" title="Card Color">
+                <svg class="icon"><use href="assets/icons.svg#icon-droplet"></use></svg>
+              </button>
+              <div id="color-palette-popover" class="color-palette-popover hidden">
+                <button class="color-swatch default" data-color="default" title="Default"></button>
+                <button class="color-swatch red" data-color="red" title="Coral"></button>
+                <button class="color-swatch orange" data-color="orange" title="Amber"></button>
+                <button class="color-swatch yellow" data-color="yellow" title="Sun"></button>
+                <button class="color-swatch green" data-color="green" title="Emerald"></button>
+                <button class="color-swatch teal" data-color="teal" title="Teal"></button>
+                <button class="color-swatch blue" data-color="blue" title="Sky"></button>
+                <button class="color-swatch purple" data-color="purple" title="Violet"></button>
+                <button class="color-swatch pink" data-color="pink" title="Rose"></button>
+              </div>
+              <button id="duplicate-note-btn" class="icon-btn" title="Duplicate Note">
+                <svg class="icon"><use href="assets/icons.svg#icon-copy"></use></svg>
+              </button>
+              <button id="export-single-note-btn" class="icon-btn" title="Export Note">
+                <svg class="icon"><use href="assets/icons.svg#icon-download"></use></svg>
+              </button>
+              <button id="archive-note-btn" class="icon-btn" title="Archive Note">
+                <svg class="icon"><use href="assets/icons.svg#icon-archive"></use></svg>
+              </button>
+              <button id="delete-note-btn" class="icon-btn danger" title="Delete Note">
+                <svg class="icon"><use href="assets/icons.svg#icon-trash"></use></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Note Metadata Header -->
+          <div class="editor-meta-bar">
+            <input type="text" id="note-title-input" class="note-title-input" placeholder="Note Title..." maxlength="120">
+
+            <div class="meta-row">
+              <div class="meta-field">
+                <label for="note-category-select" class="meta-label">Category:</label>
+                <select id="note-category-select" class="select-xs">
+                  <option value="General">General</option>
+                  <option value="Work">Work</option>
+                  <option value="Personal">Personal</option>
+                  <option value="Ideas">Ideas</option>
+                  <option value="Study">Study</option>
+                </select>
+              </div>
+
+              <div class="meta-field tags-input-wrapper">
+                <label for="note-tags-input" class="meta-label">Tags:</label>
+                <div id="note-tags-container" class="editor-tags-chips"></div>
+                <input type="text" id="note-tags-input" class="tag-input-sm" placeholder="Add tag (Press Enter)...">
+              </div>
+            </div>
+          </div>
+
+          <!-- Markdown Formatting Toolbar -->
+          <div class="editor-formatting-toolbar">
+            <div class="toolbar-group">
+              <button type="button" class="tool-btn" data-action="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+              <button type="button" class="tool-btn" data-action="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+              <button type="button" class="tool-btn" data-action="strike" title="Strikethrough"><s>S</s></button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+              <button type="button" class="tool-btn" data-action="h1" title="Heading 1">H1</button>
+              <button type="button" class="tool-btn" data-action="h2" title="Heading 2">H2</button>
+              <button type="button" class="tool-btn" data-action="h3" title="Heading 3">H3</button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+              <button type="button" class="tool-btn" data-action="ul" title="Bulleted list">
+                <svg class="icon"><use href="assets/icons.svg#icon-list"></use></svg>
+              </button>
+              <button type="button" class="tool-btn" data-action="ol" title="Numbered list">
+                <svg class="icon"><use href="assets/icons.svg#icon-ordered-list"></use></svg>
+              </button>
+              <button type="button" class="tool-btn" data-action="task" title="Task checkbox">
+                <svg class="icon"><use href="assets/icons.svg#icon-check-square"></use></svg>
+              </button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+              <button type="button" class="tool-btn" data-action="quote" title="Blockquote">
+                <svg class="icon"><use href="assets/icons.svg#icon-quote"></use></svg>
+              </button>
+              <button type="button" class="tool-btn" data-action="code" title="Inline code">
+                <svg class="icon"><use href="assets/icons.svg#icon-code"></use></svg>
+              </button>
+              <button type="button" class="tool-btn" data-action="codeblock" title="Code block">
+                <svg class="icon"><use href="assets/icons.svg#icon-terminal"></use></svg>
+              </button>
+              <button type="button" class="tool-btn" data-action="link" title="Insert Link">
+                <svg class="icon"><use href="assets/icons.svg#icon-link"></use></svg>
+              </button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group right-aligned">
+              <button id="toggle-preview-btn" type="button" class="btn btn-secondary-sm active">
+                <svg class="icon"><use href="assets/icons.svg#icon-eye"></use></svg> Split Preview
+              </button>
+            </div>
+          </div>
+
+          <!-- Body Editing & Markdown Preview Split Container -->
+          <div id="editor-split-workspace" class="editor-split-workspace split-mode">
+            <div class="editor-pane-half pane-raw">
+              <textarea id="note-body-textarea" class="note-body-textarea" placeholder="Start typing notes in markdown... (supports **bold**, *italic*, # headings, - lists, `code`)"></textarea>
+            </div>
+            <div class="editor-pane-half pane-preview">
+              <div id="markdown-preview" class="markdown-preview markdown-body">
+                <!-- Live markdown output -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Editor Footer Information -->
+          <div class="editor-footer-info">
+            <div class="stats-group">
+              <span id="stat-words">0 words</span>
+              <span class="stat-bullet">•</span>
+              <span id="stat-chars">0 characters</span>
+              <span class="stat-bullet">•</span>
+              <span id="stat-read-time">0 min read</span>
+            </div>
+            <div class="dates-group">
+              <span id="stat-created-date">Created: --</span>
+              <span class="stat-bullet">•</span>
+              <span id="stat-modified-date">Updated: --</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Modals Container -->
+    <!-- Shortcuts Modal -->
+    <div id="shortcuts-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="shortcuts-modal-title">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="shortcuts-modal-title">Keyboard Shortcuts</h3>
+          <button class="modal-close-btn" data-close-modal aria-label="Close modal">
+            <svg class="icon"><use href="assets/icons.svg#icon-x"></use></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <table class="shortcuts-table">
+            <thead>
+              <tr><th>Shortcut</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><kbd>Ctrl</kbd> + <kbd>N</kbd></td><td>Create a new note</td></tr>
+              <tr><td><kbd>Ctrl</kbd> + <kbd>S</kbd></td><td>Save note immediately</td></tr>
+              <tr><td><kbd>Ctrl</kbd> + <kbd>F</kbd></td><td>Focus search bar</td></tr>
+              <tr><td><kbd>Ctrl</kbd> + <kbd>\</kbd></td><td>Toggle navigation sidebar</td></tr>
+              <tr><td><kbd>Ctrl</kbd> + <kbd>P</kbd></td><td>Toggle live markdown preview</td></tr>
+              <tr><td><kbd>Ctrl</kbd> + <kbd>B</kbd></td><td>Bold text</td></tr>
+              <tr><td><kbd>Ctrl</kbd> + <kbd>I</kbd></td><td>Italic text</td></tr>
+              <tr><td><kbd>Ctrl</kbd> + <kbd>D</kbd></td><td>Duplicate active note</td></tr>
+              <tr><td><kbd>Ctrl</kbd> + <kbd>Del</kbd></td><td>Move active note to trash</td></tr>
+              <tr><td><kbd>Esc</kbd></td><td>Close modals / Clear search</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Backup & Restore Modal -->
+    <div id="backup-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="backup-modal-title">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="backup-modal-title">Data Backup & Export</h3>
+          <button class="modal-close-btn" data-close-modal aria-label="Close modal">
+            <svg class="icon"><use href="assets/icons.svg#icon-x"></use></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="backup-section">
+            <h4>Export Data</h4>
+            <p>Download your complete database as a portable JSON backup or export as markdown zip.</p>
+            <div class="backup-actions-row">
+              <button id="export-json-btn" class="btn btn-secondary">
+                <svg class="icon"><use href="assets/icons.svg#icon-download"></use></svg> Export JSON
+              </button>
+              <button id="export-text-btn" class="btn btn-secondary">
+                <svg class="icon"><use href="assets/icons.svg#icon-file-text"></use></svg> Export Text / MD
+              </button>
+            </div>
+          </div>
+          <hr class="modal-divider">
+          <div class="backup-section">
+            <h4>Import Data</h4>
+            <p>Restore notes from a previously exported Notes App JSON file.</p>
+            <input type="file" id="import-file-input" accept=".json,.md,.txt" class="hidden">
+            <button id="trigger-import-btn" class="btn btn-primary">
+              <svg class="icon"><use href="assets/icons.svg#icon-upload"></use></svg> Choose File to Import
+            </button>
+            <div id="import-status-message" class="import-status-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+      <div class="modal-card modal-sm">
+        <div class="modal-header">
+          <h3 id="confirm-modal-title">Confirm Action</h3>
+          <button class="modal-close-btn" data-close-modal aria-label="Close modal">
+            <svg class="icon"><use href="assets/icons.svg#icon-x"></use></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p id="confirm-modal-message">Are you sure you want to proceed?</p>
+        </div>
+        <div class="modal-footer">
+          <button id="confirm-cancel-btn" class="btn btn-secondary" data-close-modal>Cancel</button>
+          <button id="confirm-ok-btn" class="btn btn-danger">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div id="category-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="cat-modal-title">
+      <div class="modal-card modal-sm">
+        <div class="modal-header">
+          <h3 id="cat-modal-title">Create Category</h3>
+          <button class="modal-close-btn" data-close-modal aria-label="Close modal">
+            <svg class="icon"><use href="assets/icons.svg#icon-x"></use></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="new-category-name-input">Category Name</label>
+            <input type="text" id="new-category-name-input" class="input-text" placeholder="e.g. Projects, Finance..." maxlength="30">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-close-modal>Cancel</button>
+          <button id="save-new-category-btn" class="btn btn-primary">Create</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications Hub -->
+    <div id="toast-hub" class="toast-hub" aria-live="polite"></div>
+  </div>
+
+  <!-- Application Scripts -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

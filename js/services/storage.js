@@ -1,4 +1,5 @@
 import { Note } from '../models/note.js';
+import { INITIAL_SAMPLE_NOTES } from './seed-data.js';
 
 const STORAGE_KEYS = {
   NOTES: 'notes_app_notes_v1',
@@ -31,6 +32,9 @@ export class StorageService {
           sortBy: 'updated-desc',
           splitPreview: true
         }));
+      }
+      if (!localStorage.getItem(STORAGE_KEYS.NOTES)) {
+        this.saveNotes(INITIAL_SAMPLE_NOTES);
       }
     } catch (e) {
       console.warn('LocalStorage access is restricted or unavailable:', e);
